@@ -3,7 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
-char ** parse_args(char *line){
+int stringlen(char *line){
 	int s;
 	int i = 0;
 	for (s = 0; s<strlen(line); s++){
@@ -11,15 +11,26 @@ char ** parse_args(char *line){
 			i++;
 		}
 	}
-	i++;
-	char **p = malloc((i+1)*sizeof(char *));
+	return i+1;
+}
+
+char ** parse_args(char *line){
+	int s = stringlen(line);
+	char **p = malloc((s+1)*sizeof(char *));
 	char *l = line;
-	s = i;
-	i = 0;
+	int i = 0;
 	for (s>=0; s--;){
-		char *c = strsep(&l, " ");
-		p[i] = c;
-		i++;
+		if (s){
+			char *c = strsep(&l, " ");
+			p[i] = c;
+			i++;
+		}
+		else{
+			char *c = strsep(&l, " ");
+			sscanf(c, "%s\n", c);
+			p[i] = c;
+			i++;
+		}
 	}
 	p[i] = NULL;
 	return p;
