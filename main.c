@@ -15,20 +15,37 @@ int main(){//make ls work with bunch of spaces
 	while (f){//parent keeps running
 		printf("Parent: ");
 		fgets(c, sizeof(c), stdin);
-		char **string = parse_args(c);
-		f = fork();
-		if (strcasecmp(c, "cd") == 0){
-		}
-		if (f == 0){//child
-			execvp(string[0], string);
-			return 0;
-		}
-		printf("%s\n", getcwd(c, sizeof(c)));
-    		p = waitpid(-1, &status, 0);
-		if (WIFEXITED(status)){
+		for (int i = semilen(c); i>0; i--){
+			char temp[200];
+			strcpy(temp, c);
+			char **string = parse_args(c);
+			if (strcasecmp(string[0], "cd") == 0){
+				if (string[1]){
+					char directory[200];
+					printf("Old directory: %s\n", getcwd(directory, sizeof(directory)));
+					printf("%s\n", string[1]);
+					chdir(string[1]);
+					printf("New directory: %s\n", getcwd(directory, sizeof(directory)));
+				}
+			}
+			else if (strcasecmp(string[0], "exit") == 0){
+				exit(0);
+			}
+			else{
+				f = fork();
+				if (f == 0){//child
+					execvp(string[0], string);
+					return 0;
+				}
+				else{//parent
+					waitpid(-1, &status, 0);
+				}
+			}
+			if (i > 1){
+				strcpy(c, temp);
+				nextsemi(c);
+			}
 		}
 	}
 	return 1;
 }
-
-

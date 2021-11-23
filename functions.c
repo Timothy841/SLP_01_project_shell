@@ -4,14 +4,32 @@
 #include <unistd.h>
 
 int stringlen(char *line){
-	int s;
 	int i = 0;
-	for (s = 0; s<strlen(line); s++){
+	for (int s = 0; s<strlen(line); s++){
 		if (line[s] == ' '){
 			i++;
 		}
 	}
 	return i+1;
+}
+
+int semilen(char *line){
+	int i = 0;
+	for (int s = 0; s<strlen(line); s++){
+		if (line[s] == ';'){
+			i++;
+		}
+	}
+	return i+1;
+}
+
+void nextsemi(char *line){
+	for (int s = 0; s<strlen(line); s++){
+		if (line[s] == ';'){
+			strcpy(line, &line[s+2]);
+			break;
+		}
+	}
 }
 
 char ** parse_args(char *line){
@@ -30,6 +48,9 @@ char ** parse_args(char *line){
 			sscanf(c, "%s\n", c);
 			p[i] = c;
 			i++;
+		}
+		if (s && l[0] == ';'){
+				break;
 		}
 	}
 	p[i] = NULL;
