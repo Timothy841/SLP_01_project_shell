@@ -16,14 +16,12 @@ int main(){//make ls work with bunch of spaces
 		printf("Parent: ");
 		fgets(c, sizeof(c), stdin);
 		for (int i = semilen(c); i>0; i--){
-			char temp[200];
-			strcpy(temp, c);
 			char **string = parse_args(c);
+				printf("[%s]\n", c);
 			if (strcasecmp(string[0], "cd") == 0){
 				if (string[1]){
 					char directory[200];
 					printf("Old directory: %s\n", getcwd(directory, sizeof(directory)));
-					printf("%s\n", string[1]);
 					chdir(string[1]);
 					printf("New directory: %s\n", getcwd(directory, sizeof(directory)));
 				}
@@ -42,8 +40,7 @@ int main(){//make ls work with bunch of spaces
 				}
 			}
 			if (i > 1){
-				strcpy(c, temp);
-				nextsemi(c);
+				printf("[%s]\n", c);
 			}
 		}
 	}
