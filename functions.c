@@ -3,7 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
-int stringlen(char *line){
+int stringlen(char *line){//amount of arguments in a command
 	int i = 0;
 	for (int s = 0; s<strlen(line); s++){
 		if (line[s] == ' '){
@@ -13,7 +13,7 @@ int stringlen(char *line){
 	return i+1;
 }
 
-int semilen(char *line){
+int semilen(char *line){//how many semicolons there are
 	int i = 0;
 	int quotes = 0;
 	for (int s = 0; s < strlen(line); s++){
@@ -27,9 +27,24 @@ int semilen(char *line){
 	return i+1;
 }
 
-char * stringsplit(char *line, int pos){
+int semipos(char *line){
+	int quotes = 0;
+	int s;
+	for (s = 0; s < strlen(line); s++){
+		if (line[s] == ';' && quotes%2 == 0){
+			return s+1;
+		}
+		else if (line[s] == '"'){
+			quotes++;
+		}
+	}
+	return s+1;
+}
+
+char * stringsplit(char *line, int pos){//first half and second half
 	line[pos] = '\0';//split line
-	return &line[pos+1];//return latter half
+	char *c = &line[pos+1];
+	return c;//return latter half
 }
 /*char ** parse_args(char *line){
 	int s = stringlen(line);
@@ -59,16 +74,8 @@ char * stringsplit(char *line, int pos){
 char ** parse_args(char *line){
 	char *c = line;
 	int quotes = 0;
-	for (int s = 0; s < strlen(line); s++){
-		if (line[s] == '"'){
-			quotes++;
-		}
-		else if (line[s] == ';' && quotes%2 == 0){
-			line = stringsplit(line, s);//line is now the second half
-			printf("%svbv\n", line);
-		}
-	}
-	int s = stringlen(line);
+	line = stringsplit(line, semipos(line));//line is now the second half	c is first half
+	int s = stringlen(c);//s is how many arguments there are
 	char **p = malloc((s+1)*sizeof(char *));
 	char *l = c;
 	int i = 0;
