@@ -52,7 +52,7 @@ char ** parse_args(char *line){//turns a string into an array of strings. Only d
 	int s = stringlen(line);//number of arguments in first part
 	char **p = malloc((s+1)*sizeof(char *));
 	int i = 0;
-	for (s>=0; s--;){
+	for (s>0; s--;){
 		char *string = strsep(&line, " ");
 		sscanf(string, "%s\n", string);
 		if (strlen(string)){

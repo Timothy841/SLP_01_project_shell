@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <errno.h>
 #include "functions.h"
 
 
@@ -36,6 +37,9 @@ int main(){
 					int a = redirect(string);//if a is a number, that means it's redirect, don't execvp
 					if (a == 1){
 						execvp(string[0], string);
+						if (errno == 2){
+							printf("Command doesn't work\n");
+						}
 					}
 					return 0;
 				}
