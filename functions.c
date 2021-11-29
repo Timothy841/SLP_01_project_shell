@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 int stringlen(char *line){//amount of arguments in a command
 	int i = 0;
@@ -27,71 +28,148 @@ int semilen(char *line){//how many semicolons there are
 	return i+1;
 }
 
-int semipos(char *line){
+int semipos(char *line){//returns index of first semicolon
 	int quotes = 0;
 	int s;
 	for (s = 0; s < strlen(line); s++){
 		if (line[s] == ';' && quotes%2 == 0){
-			return s+1;
+			return s;
 		}
 		else if (line[s] == '"'){
 			quotes++;
 		}
 	}
-	return s+1;
+	return s;
 }
 
-char * stringsplit(char *line, int pos){//first half and second half
+void stringsplit(char *line, int pos){//first half and second half
 	line[pos] = '\0';//split line
-	char *c = &line[pos+1];
-	return c;//return latter half
 }
-/*char ** parse_args(char *line){
-	int s = stringlen(line);
+
+/*char ** parse_args(char *line){//retutns first part of commands as array of strings
+	int semi = semipos(line);
+	stringsplit(line, semi);//line split between first semicolon
+	int s = stringlen(line);//s is how many arguments there are
 	char **p = malloc((s+1)*sizeof(char *));
 	char *l = line;
 	int i = 0;
+	printf("hello %d\n", s);
 	for (s>=0; s--;){
+		printf("%d\n", s);
 		if (s){
-			char *c = strsep(&l, " ");
-			p[i] = c;
-			i++;
+			char *string = strsep(&l, " ");
+			if (string != NULL){
+				p[i] = string;
+				i++;
+			}
 		}
 		else{
-			char *c = strsep(&l, " ");
-			sscanf(c, "%s\n", c);
-			p[i] = c;
+			char *string = strsep(&l, " ");
+			sscanf(string, "%s\n", string);
+			p[i] = string;
 			i++;
-		}
-		if (s && l[0] == ';'){
-				break;
 		}
 	}
 	p[i] = NULL;
-	return p;
+	line[semi] = ';';
+	return p;//returns the first half
 }*/
 
 char ** parse_args(char *line){
-	char *c = line;
-	int quotes = 0;
-	line = stringsplit(line, semipos(line));//line is now the second half	c is first half
-	int s = stringlen(c);//s is how many arguments there are
+	int semi = semipos(line);//index of semicolon
+	stringsplit(line, semi);//split using semicolon
+	int s = stringlen(line);//number of arguments in first part
 	char **p = malloc((s+1)*sizeof(char *));
-	char *l = c;
 	int i = 0;
 	for (s>=0; s--;){
-		if (s){
-			char *c = strsep(&l, " ");
-			p[i] = c;
-			i++;
-		}
-		else{
-			char *c = strsep(&l, " ");
-			sscanf(c, "%s\n", c);
-			p[i] = c;
+		char *string = strsep(&line, " ");
+		sscanf(string, "%s\n", string);
+		if (strlen(string)){
+			p[i] = string;
 			i++;
 		}
 	}
-	p[i] = NULL;
-	return p;//returns the first half
+	if (p[i-1][0] == '\n'){
+		p[i-1] = NULL;
+	}
+	else{
+		p[i] = NULL;
+	}
+	return p;
+}
+
+char * restring(char **strings){//put arguments back into a single string
+	char *line = calloc(20, 10);
+	for (int i = 0; strings[i] != NULL; i++){
+		strcat(line, strings[i]);
+		if (strings[i+1] != NULL){
+			strcat(line, " ");
+		}
+	}
+	return line;
+}
+
+int redirect(char **strings){//redirection and pipes
+	int a = 0;
+	while (strings[a] != NULL){//go through until the end
+		if (!strcmp(strings[a], ">")){
+			int file = open(strings[a+1], O_WRONLY | O_CREAT, 0644);//open file to write
+			int tempout = dup(STDOUT_FILENO);//duplicate of stdout
+			dup2(file, STDOUT_FILENO);//set stdout's entry to file
+			char *temppointer = strings[a];
+			strings[a] = NULL;
+			int sf = execvp(strings[0], strings);//only looks at first half
+			strings[a] = temppointer;
+			dup2(tempout, STDOUT_FILENO);//set stdout's entry back to stdout
+			close(file);
+			close(tempout);
+		}
+		else if (!strcmp(strings[a], ">>")){
+			int file = open(strings[a+1], O_APPEND | O_CREAT, 0644);//open file to append
+			int tempout = dup(STDOUT_FILENO);//duplicate of stdout
+			dup2(file, STDOUT_FILENO);//set stdout's entry to file
+			char *temppointer = strings[a];
+			strings[a] = NULL;
+			int sf = execvp(strings[0], strings);//only looks at first half
+			strings[a] = temppointer;
+			dup2(tempout, STDOUT_FILENO);//set stdout's entry back to stdout
+			close(file);
+			close(tempout);
+		}
+		else if (!strcmp(strings[a], "<")){
+			int rfile = open(strings[a+1], O_RDONLY);//open file to read from
+			int tempout = dup(STDIN_FILENO);//duplicate of stdin
+			dup2(rfile, STDIN_FILENO);//set stdin's entry to file
+			char *temppointer = strings[a];
+			strings[a] = NULL;
+			int sf = execvp(strings[0], strings);
+			strings[a] = temppointer;
+			dup2(tempout, STDIN_FILENO);//set stdin's entry back to stdout
+			close(rfile);
+			close(tempout);
+		}
+		else if (!strcmp(strings[a], "|")){
+			strings[a] = NULL;
+			char *first = restring(strings);//first half
+			char *second = restring(&strings[a+1]);//second half
+			FILE *read = popen(first, "r");
+			FILE *write = popen(second, "w");
+			if (read == NULL || write == NULL){
+				printf("Something went wrong please try again\n");
+				exit(0);
+			}
+			while (1) {
+				if (feof(read)) {//reached end of read
+					break;
+				}
+				fputc(fgetc(read),write);//put each character of read into write
+			}
+			pclose(write);
+			pclose(read);
+			free(first);
+			free(second);
+		}
+		a++;
+	}
+	return 1;
 }

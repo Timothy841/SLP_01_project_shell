@@ -4,21 +4,22 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
-
 #include "functions.h"
 
 
-int main(){//make ls work with bunch of spaces
+int main(){
 	int f = 1;
-    	int status, p;
+  int status, p;
 	char c[200];
 	while (f){//parent keeps running
 		printf("Parent: ");
 		fgets(c, sizeof(c), stdin);
+		char *cc = c;
+		int end = strlen(c)-1;
 		for (int i = semilen(c); i>0; i--){
-			char **string = parse_args(c);
-				printf("[%s]\n", c);
-			if (strcasecmp(string[0], "cd") == 0){
+			int next = semipos(cc)+1;
+			char **string = parse_args(cc);
+			if (strcasecmp(string[0], "cd") == 0){//cd
 				if (string[1]){
 					char directory[200];
 					printf("Old directory: %s\n", getcwd(directory, sizeof(directory)));
@@ -26,23 +27,33 @@ int main(){//make ls work with bunch of spaces
 					printf("New directory: %s\n", getcwd(directory, sizeof(directory)));
 				}
 			}
-			else if (strcasecmp(string[0], "exit") == 0){
+			else if (strcasecmp(string[0], "exit") == 0){//exit
 				exit(0);
 			}
-			else{
+			else{//other commands
 				f = fork();
 				if (f == 0){//child
-					execvp(string[0], string);
+					int a = redirect(string);//if a is a number, that means it's redirect, don't execvp
+					if (a == 1){
+						execvp(string[0], string);
+					}
 					return 0;
 				}
 				else{//parent
 					waitpid(-1, &status, 0);
 				}
 			}
-			if (i > 1){
-				printf("[%s]\n", c);
+			if (next >= end){
+				break;
+			}
+			cc = &cc[next];//brings cc to next set of commands
+			while (cc[0] == ' '){
+				cc = &cc[1];
 			}
 		}
 	}
-	return 1;
+	return 0;
 }
+
+
+//sscanf everything to get rid of spaces. If string is just a space or it becomes null, dpn't add it.
