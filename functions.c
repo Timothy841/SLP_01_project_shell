@@ -42,40 +42,11 @@ int semipos(char *line){//returns index of first semicolon
 	return s;
 }
 
-void stringsplit(char *line, int pos){//first half and second half
-	line[pos] = '\0';//split line
+void stringsplit(char *line, int pos){//splits line into two
+	line[pos] = '\0';//split line by introducing a null
 }
 
-/*char ** parse_args(char *line){//retutns first part of commands as array of strings
-	int semi = semipos(line);
-	stringsplit(line, semi);//line split between first semicolon
-	int s = stringlen(line);//s is how many arguments there are
-	char **p = malloc((s+1)*sizeof(char *));
-	char *l = line;
-	int i = 0;
-	printf("hello %d\n", s);
-	for (s>=0; s--;){
-		printf("%d\n", s);
-		if (s){
-			char *string = strsep(&l, " ");
-			if (string != NULL){
-				p[i] = string;
-				i++;
-			}
-		}
-		else{
-			char *string = strsep(&l, " ");
-			sscanf(string, "%s\n", string);
-			p[i] = string;
-			i++;
-		}
-	}
-	p[i] = NULL;
-	line[semi] = ';';
-	return p;//returns the first half
-}*/
-
-char ** parse_args(char *line){
+char ** parse_args(char *line){//turns a string into an array of strings. Only does the first part and leaves the second part as a string. Separates them based on semicolons
 	int semi = semipos(line);//index of semicolon
 	stringsplit(line, semi);//split using semicolon
 	int s = stringlen(line);//number of arguments in first part
@@ -98,7 +69,7 @@ char ** parse_args(char *line){
 	return p;
 }
 
-char * restring(char **strings){//put arguments back into a single string
+char * restring(char **strings){//put array of strings back into a single string. For piping
 	char *line = calloc(20, 10);
 	for (int i = 0; strings[i] != NULL; i++){
 		strcat(line, strings[i]);
