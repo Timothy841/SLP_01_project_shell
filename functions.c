@@ -94,6 +94,7 @@ int redirect(char **strings){//redirection and pipes
 			dup2(tempout, STDOUT_FILENO);//set stdout's entry back to stdout
 			close(file);
 			close(tempout);
+			return 0;
 		}
 		else if (!strcmp(strings[a], ">>")){
 			int file = open(strings[a+1], O_APPEND | O_CREAT, 0644);//open file to append
@@ -106,6 +107,7 @@ int redirect(char **strings){//redirection and pipes
 			dup2(tempout, STDOUT_FILENO);//set stdout's entry back to stdout
 			close(file);
 			close(tempout);
+			return 0;
 		}
 		else if (!strcmp(strings[a], "<")){
 			int rfile = open(strings[a+1], O_RDONLY);//open file to read from
@@ -118,6 +120,7 @@ int redirect(char **strings){//redirection and pipes
 			dup2(tempout, STDIN_FILENO);//set stdin's entry back to stdout
 			close(rfile);
 			close(tempout);
+			return 0;
 		}
 		else if (!strcmp(strings[a], "|")){
 			strings[a] = NULL;
@@ -139,6 +142,7 @@ int redirect(char **strings){//redirection and pipes
 			pclose(read);
 			free(first);
 			free(second);
+			return 0;
 		}
 		a++;
 	}

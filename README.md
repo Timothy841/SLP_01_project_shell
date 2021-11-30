@@ -1,8 +1,8 @@
-Features: The shell implements the basic separation of commands by semicolons. It also can do redirection, though only one per command that's separated by semicolons. Also doesn't work unless it's separated by spaces.
+Features: The shell implements the basic separation of commands by semicolons. It also can do redirection, though only one per command that's separated by semicolons. It also doesn't work unless it's separated by spaces. Piping works too, the same way as redirection.
 
 Attempted features: None
 
-Bugs: Piping works, but it prints the input program's things into stdout as well.
+Bugs: None found
 
 Function Headers:
 
